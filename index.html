@@ -190,7 +190,7 @@
     <header>
         <h1>SYNCHRONOUS CLASS SCHEDULE</h1>
         <h2>BAPROUMN 2-1</h2>
-        <p id="today-date-str">Today is Saturday, September 12, 2026</p>
+        <p id="today-date-str">Loading current date...</p>
     </header>
 
     <div class="content">
@@ -212,29 +212,30 @@
 </div>
 
 <script>
-    // Known Professors Map based on tracker
+    // Known Professors mapping
     const profMap = {
         "ADPR 201": "Christopher Andres",
         "ADPR 203": "Junephrey Ocampo",
         "GEED 002": "McDonald Pascual"
     };
 
+    // Live CSV endpoint generated from your published link
     const targetCsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRFXLJEX1ziixx8c0vzBOcGB6ucE8mMnYmdjARlX791mL-nHGd7bW2072hRz5W2T401fWtCpnTzUy00/pub?gid=2043487899&single=true&output=csv';
-    const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(targetCsvUrl);
 
-    const todayStr = "2026-09-12";
+    // Set today's date dynamically or match tracker date
+    const now = new Date();
+    const formattedToday = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    document.getElementById('today-date-str').innerText = `Today is ${formattedToday}`;
+
+    // Standard ISO string for today's date comparison (YYYY-MM-DD)
+    const todayISO = "2026-09-12"; // Match active academic tracker date reference
 
     async function loadLiveData() {
         try {
-            let csvText = "";
-            try {
-                const response = await fetch(targetCsvUrl);
-                csvText = await response.text();
-            } catch (e) {
-                const response = await fetch(proxyUrl);
-                csvText = await response.text();
-            }
-
+            // Add timestamp parameter to prevent browser caching of old sheet data
+            const cacheBustUrl = targetCsvUrl + '&t=' + new Date().getTime();
+            const response = await fetch(cacheBustUrl);
+            const csvText = await response.text();
             const rows = parseCSV(csvText);
 
             let headerIdx = -1;
@@ -246,7 +247,7 @@
             }
 
             if (headerIdx === -1) {
-                renderFallback();
+                console.error("Could not locate table headers in Google Sheet.");
                 return;
             }
 
@@ -288,24 +289,19 @@
 
                 if (confirmed === 'yes') {
                     const item = { code, desc, prof, start: formatTime(start), end: formatTime(end), cycle, link };
-                    if (dateVal.includes(todayStr) || dateVal.includes('9/12/2026') || dateVal.includes('09/12/2026')) {
+                    if (dateVal.includes(todayISO) || dateVal.includes('9/12/2026') || dateVal.includes('09/12/2026')) {
                         confirmedToday.push(item);
-                    } else if (dateVal > todayStr) {
+                    } else if (dateVal > todayISO) {
                         confirmedUpcoming.push(item);
                     }
                 }
             }
 
-            if (confirmedToday.length === 0 && confirmedUpcoming.length === 0) {
-                renderFallback();
-            } else {
-                renderToday(confirmedToday);
-                renderUpcoming(confirmedUpcoming);
-            }
+            renderToday(confirmedToday);
+            renderUpcoming(confirmedUpcoming);
 
         } catch (err) {
             console.error("Error fetching live sheet:", err);
-            renderFallback();
         }
     }
 
@@ -362,16 +358,6 @@
                 </div>
             </div>
         `;
-    }
-
-    function renderFallback() {
-        const fallbackToday = [
-            { code: "ADPR 201", desc: "Basic Photography Applied in Advertising", prof: "Christopher Andres", start: "8:15 AM", end: "9:00 AM", cycle: "Cycle 1", link: "https://meet.google.com/bkh-iefc-eog" },
-            { code: "COMM 002", desc: "Communication and Media Theories", prof: "TBD", start: "9:00 AM", end: "10:30 AM", cycle: "Cycle 1", link: "" },
-            { code: "ADPR 204", desc: "Multimedia Production", prof: "TBD", start: "3:00 PM", end: "4:30 PM", cycle: "Cycle 2", link: "" }
-        ];
-        renderToday(fallbackToday);
-        renderUpcoming([]);
     }
 
     function parseCSV(text) {

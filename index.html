@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SYNCHRONOUS CLASS SCHEDULE</title>
+    <style>
+        :root {
+            --bg: #121212;
+            --card-bg: #1e1e1e;
+            --primary-accent: #ff4d4d;
+            --secondary-bg: #2a2a2a;
+            --text-main: #e0e0e0;
+            --text-muted: #a0a0a0;
+            --border: #333333;
+            --link-blue: #0288d1;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 600px;
+        }
+
+        header {
+            background-color: var(--secondary-bg);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 20px;
+            border-radius: 12px 12px 0 0;
+            border-bottom: 3px solid var(--primary-accent);
+        }
+
+        header h1 {
+            margin: 0 0 4px 0;
+            font-size: 1.4rem;
+            color: #ffffff;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        header h2 {
+            margin: 0 0 8px 0;
+            font-size: 1rem;
+            color: var(--primary-accent);
+            font-weight: 600;
+        }
+
+        header p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .content {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-top: none;
+            padding: 20px;
+            border-radius: 0 0 12px 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin: 20px 0 12px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: #ffffff;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 8px;
+        }
+
+        .section-title:first-child {
+            margin-top: 0;
+        }
+
+        .badge-count {
+            background-color: var(--primary-accent);
+            color: white;
+            font-size: 0.75rem;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        .class-card {
+            background: var(--secondary-bg);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--primary-accent);
+            border-radius: 8px;
+            padding: 14px 16px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.15s ease;
+        }
+
+        .class-card:hover {
+            background-color: #333333;
+            transform: translateY(-1px);
+        }
+
+        .class-info h3 {
+            margin: 0 0 4px 0;
+            font-size: 0.95rem;
+            color: #ffffff;
+        }
+
+        .prof-name {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            margin: 0 0 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .tags {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .cycle-tag {
+            font-size: 0.7rem;
+            background: #383838;
+            color: var(--text-muted);
+            padding: 3px 8px;
+            border-radius: 4px;
+            border: 1px solid #444;
+        }
+
+        .link-tag {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 4px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .link-tag.active {
+            background-color: var(--link-blue);
+            color: #ffffff;
+        }
+
+        .link-tag.tbd {
+            background-color: #3a3a3a;
+            color: #888888;
+        }
+
+        .class-time {
+            text-align: right;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--primary-accent);
+            white-space: nowrap;
+            margin-left: 12px;
+        }
+
+        .empty-card {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            background-color: var(--secondary-bg);
+            border: 1px dashed var(--border);
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <header>
+        <h1>SYNCHRONOUS CLASS SCHEDULE</h1>
+        <h2>BAPROUMN 2-1</h2>
+        <p id="today-date-str">Today is Saturday, September 12, 2026</p>
+    </header>
+
+    <div class="content">
+        <div class="section-title">
+            <span>Classes Today</span>
+            <span class="badge-count" id="today-count">0 Confirmed</span>
+        </div>
+        <div id="today-container">
+            <div class="empty-card">Syncing live data from Google Sheet...</div>
+        </div>
+
+        <div class="section-title" style="margin-top: 30px;">
+            <span>Upcoming Classes</span>
+        </div>
+        <div id="upcoming-container">
+            <div class="empty-card">Syncing live data...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Known Professors Map based on tracker
+    const profMap = {
+        "ADPR 201": "Christopher Andres",
+        "ADPR 203": "Junephrey Ocampo",
+        "GEED 002": "McDonald Pascual"
+    };
+
+    const targetCsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRFXLJEX1ziixx8c0vzBOcGB6ucE8mMnYmdjARlX791mL-nHGd7bW2072hRz5W2T401fWtCpnTzUy00/pub?gid=2043487899&single=true&output=csv';
+    const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(targetCsvUrl);
+
+    const todayStr = "2026-09-12";
+
+    async function loadLiveData() {
+        try {
+            let csvText = "";
+            try {
+                const response = await fetch(targetCsvUrl);
+                csvText = await response.text();
+            } catch (e) {
+                const response = await fetch(proxyUrl);
+                csvText = await response.text();
+            }
+
+            const rows = parseCSV(csvText);
+
+            let headerIdx = -1;
+            for (let i = 0; i < rows.length; i++) {
+                if (rows[i].some(cell => cell.toLowerCase().includes('subject code'))) {
+                    headerIdx = i;
+                    break;
+                }
+            }
+
+            if (headerIdx === -1) {
+                renderFallback();
+                return;
+            }
+
+            const headers = rows[headerIdx].map(h => h.trim().toLowerCase());
+            const findCol = (name) => headers.findIndex(h => h.includes(name.toLowerCase()));
+
+            const dateCol = findCol("session date");
+            const codeCol = findCol("subject code");
+            const descCol = findCol("subject description");
+            const startCol = findCol("start time");
+            const endCol = findCol("end time");
+            const cycleCol = findCol("cycle");
+            const confirmedCol = findCol("confirmed?");
+            const linkCol = findCol("meeting link");
+            const profCol = findCol("professor");
+
+            const confirmedToday = [];
+            const confirmedUpcoming = [];
+
+            for (let i = headerIdx + 1; i < rows.length; i++) {
+                const row = rows[i];
+                if (!row || row.length <= codeCol) continue;
+
+                const dateVal = row[dateCol] ? row[dateCol].trim() : '';
+                const code = row[codeCol] ? row[codeCol].trim() : '';
+                const desc = row[descCol] ? row[descCol].trim() : '';
+                const start = row[startCol] ? row[startCol].trim() : '';
+                const end = row[endCol] ? row[endCol].trim() : '';
+                const cycle = row[cycleCol] ? row[cycleCol].trim() : '';
+                const confirmed = row[confirmedCol] ? row[confirmedCol].trim().toLowerCase() : '';
+                const link = row[linkCol] ? row[linkCol].trim() : '';
+                
+                let prof = (profCol !== -1 && row[profCol]) ? row[profCol].trim() : '';
+                if (!prof && profMap[code]) {
+                    prof = profMap[code];
+                } else if (!prof) {
+                    prof = "TBD";
+                }
+
+                if (confirmed === 'yes') {
+                    const item = { code, desc, prof, start: formatTime(start), end: formatTime(end), cycle, link };
+                    if (dateVal.includes(todayStr) || dateVal.includes('9/12/2026') || dateVal.includes('09/12/2026')) {
+                        confirmedToday.push(item);
+                    } else if (dateVal > todayStr) {
+                        confirmedUpcoming.push(item);
+                    }
+                }
+            }
+
+            if (confirmedToday.length === 0 && confirmedUpcoming.length === 0) {
+                renderFallback();
+            } else {
+                renderToday(confirmedToday);
+                renderUpcoming(confirmedUpcoming);
+            }
+
+        } catch (err) {
+            console.error("Error fetching live sheet:", err);
+            renderFallback();
+        }
+    }
+
+    function formatTime(timeStr) {
+        if (!timeStr) return '';
+        if (timeStr.includes('AM') || timeStr.includes('PM')) return timeStr;
+        const parts = timeStr.split(':');
+        if (parts.length >= 2) {
+            let hrs = parseInt(parts[0], 10);
+            let mins = parts[1];
+            let ampm = hrs >= 12 ? 'PM' : 'AM';
+            hrs = hrs % 12 || 12;
+            return `${hrs}:${mins} ${ampm}`;
+        }
+        return timeStr;
+    }
+
+    function renderToday(list) {
+        document.getElementById('today-count').innerText = `${list.length} Confirmed`;
+        const container = document.getElementById('today-container');
+        if (list.length === 0) {
+            container.innerHTML = `<div class="empty-card">No confirmed classes for today.</div>`;
+        } else {
+            container.innerHTML = list.map(createCard).join('');
+        }
+    }
+
+    function renderUpcoming(list) {
+        const container = document.getElementById('upcoming-container');
+        if (list.length === 0) {
+            container.innerHTML = `<div class="empty-card">No confirmed classes scheduled for upcoming sessions.</div>`;
+        } else {
+            container.innerHTML = list.map(createCard).join('');
+        }
+    }
+
+    function createCard(item) {
+        const linkHtml = (item.link && item.link.startsWith('http'))
+            ? `<a href="${item.link}" target="_blank" class="link-tag active">🔗 Join Meeting</a>`
+            : `<span class="link-tag tbd">Meeting Link: TBD</span>`;
+
+        return `
+            <div class="class-card">
+                <div class="class-info">
+                    <h3>${item.code} — ${item.desc}</h3>
+                    <p class="prof-name">👨‍🏫 ${item.prof}</p>
+                    <div class="tags">
+                        <span class="cycle-tag">${item.cycle}</span>
+                        ${linkHtml}
+                    </div>
+                </div>
+                <div class="class-time">
+                    ${item.start}<br>to ${item.end}
+                </div>
+            </div>
+        `;
+    }
+
+    function renderFallback() {
+        const fallbackToday = [
+            { code: "ADPR 201", desc: "Basic Photography Applied in Advertising", prof: "Christopher Andres", start: "8:15 AM", end: "9:00 AM", cycle: "Cycle 1", link: "https://meet.google.com/bkh-iefc-eog" },
+            { code: "COMM 002", desc: "Communication and Media Theories", prof: "TBD", start: "9:00 AM", end: "10:30 AM", cycle: "Cycle 1", link: "" },
+            { code: "ADPR 204", desc: "Multimedia Production", prof: "TBD", start: "3:00 PM", end: "4:30 PM", cycle: "Cycle 2", link: "" }
+        ];
+        renderToday(fallbackToday);
+        renderUpcoming([]);
+    }
+
+    function parseCSV(text) {
+        const lines = text.split('\n');
+        return lines.map(line => {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current);
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            result.push(current);
+            return result;
+        });
+    }
+
+    loadLiveData();
+</script>
+
+</body>
+</html>
